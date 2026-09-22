@@ -1,18 +1,25 @@
 package com.github.forax.framework.mapper;
 
+import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public final class JSONWriter {
-    static class PropertyDescriptorCache extends ClassValue<PropertyDescriptor[]> {
+    public JSONWriter() {
+        map = new HashMap<>();
+        super();
+    }
+
+    static class PropertyDescriptorCache extends ClassValue<List<PropertyDescriptor>> {
         @Override
-        protected PropertyDescriptor[] computeValue(Class<?> type) {
-            var bean = Utils.beanInfo(type);
-            return bean.getPropertyDescriptors();
+        protected List<PropertyDescriptor> computeValue(Class<?> type) {
+            return type.isRecord() ? recordProperties(type) : beanProperties(type);
         }
     }
 
@@ -23,8 +30,8 @@ public final class JSONWriter {
     static class GeneratorCache extends ClassValue<Generator> {
         @Override
         protected Generator computeValue(Class<?> type) {
-            var beanInfo = Utils.beanInfo(type);
-            var generators = Arrays.stream(beanInfo.getPropertyDescriptors())
+            var properties = type.isRecord() ? recordProperties(type) : beanProperties(type);
+            var generators = properties.stream()
                     .filter(el -> !el.getName().equals("class"))
                     .filter(el -> el.getReadMethod() != null)
                     .<Generator>map(property -> {
@@ -44,7 +51,6 @@ public final class JSONWriter {
         }
     }
 
-    private static final PropertyDescriptorCache cache = new PropertyDescriptorCache();
     private static final GeneratorCache genCache = new GeneratorCache();
 
     public String toJSON(Object o) {
@@ -54,25 +60,47 @@ public final class JSONWriter {
             case Boolean b -> "" + b;
             case Integer i -> "" + i;
             case Double b -> "" + b;
-            case Object obj ->{
+            case Object obj -> {
                 var func = map.get(obj.getClass());
-                if(func !=null){
+                if (func != null) {
                     yield func.apply(obj);
                 }
-              yield  genCache.get(obj.getClass()).generate(this, obj);
+                yield genCache.get(obj.getClass()).generate(this, obj);
             }
         };
-    };
+    }
 
-    private static final HashMap<Class<?>, Function<Object,String>> map = new HashMap<>();
+    ;
 
-    public <T> void configure(Class<T> clazz, Function<? super T,String> lambda) throws InstantiationException, IllegalAccessException {
+    private final HashMap<Class<?>, Function<Object, String>> map;
+
+    public <T> void configure(Class<T> clazz, Function<? super T, String> lambda) {
         Objects.requireNonNull(clazz);
         Objects.requireNonNull(lambda);
-        if(map.putIfAbsent(clazz, obj -> lambda.apply(clazz.cast(obj)))!=null){
-            throw new IllegalStateException("Class already configured" + clazz.getName());
+
+        var result = map.putIfAbsent(clazz, obj -> lambda.apply(clazz.cast(obj)));
+        if (result != null) {
+            throw new IllegalStateException("already configured");
         }
     }
+
+    private static List<PropertyDescriptor> beanProperties(Class<?> type) {
+        var bean = Utils.beanInfo(type);
+        return List.of(bean.getPropertyDescriptors());
+    }
+
+    private static List<PropertyDescriptor> recordProperties(Class<?> type) {
+        return Arrays.stream(type.getRecordComponents()).map(el -> {
+            try {
+                String name = el.getName();
+                Method accessor = el.getAccessor();
+                return new PropertyDescriptor(name, accessor, null);
+            } catch (IntrospectionException e) {
+                throw new RuntimeException(e);
+            }
+        }).toList();
+    }
+
 }
 
 

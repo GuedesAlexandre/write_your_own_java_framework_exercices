@@ -18,21 +18,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SuppressWarnings({"unused", "static-method"})
 public class JSONWriterTest {
 
-//  @Nested
-//  public class Q1 {
-//    @Test @Tag("Q1")
-//    public void toJSONPrimitive() {
-//      var writer = new JSONWriter();
-//      assertAll(
-//          () -> assertEquals("null", writer.toJSON(null)),
-//          () -> assertEquals("true", writer.toJSON(true)),
-//          () -> assertEquals("false", writer.toJSON(false)),
-//          () -> assertEquals("3", writer.toJSON(3)),
-//          () -> assertEquals("4.0", writer.toJSON(4.0)),
-//          () -> assertEquals("\"foo\"", writer.toJSON("foo"))
-//      );
-//    }
-//  }  // end of Q1
+  @Nested
+  public class Q1 {
+    @Test @Tag("Q1")
+    public void toJSONPrimitive() {
+      var writer = new JSONWriter();
+      assertAll(
+          () -> assertEquals("null", writer.toJSON(null)),
+          () -> assertEquals("true", writer.toJSON(true)),
+          () -> assertEquals("false", writer.toJSON(false)),
+          () -> assertEquals("3", writer.toJSON(3)),
+          () -> assertEquals("4.0", writer.toJSON(4.0)),
+          () -> assertEquals("\"foo\"", writer.toJSON("foo"))
+      );
+    }
+  }  // end of Q1
 
 
   public static class Car {
@@ -121,14 +121,14 @@ public class JSONWriterTest {
   @Nested
   public class Q5 {
     @Test @Tag("Q5")
-    public void toJSONWithConfigure() throws InstantiationException, IllegalAccessException {
+    public void toJSONWithConfigure() {
       var writer = new JSONWriter();
       writer.configure(LocalDateTime.class, time -> time.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
       assertEquals("2021-06-16T20:53:17", writer.toJSON(LocalDateTime.of(2021, 6, 16, 20, 53, 17)));
     }
 
     @Test @Tag("Q5")
-    public void toJSONBeanWithConfigure() throws InstantiationException, IllegalAccessException {
+    public void toJSONBeanWithConfigure() {
       var writer = new JSONWriter();
       writer.configure(LocalDateTime.class, time -> time.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
       var startDate = new StartDate(LocalDateTime.of(2021, 7, 1, 20, 7));
@@ -139,7 +139,7 @@ public class JSONWriterTest {
     }
 
     @Test @Tag("Q5")
-    public void configureTwice() throws InstantiationException, IllegalAccessException {
+    public void configureTwice() {
       var writer = new JSONWriter();
       writer.configure(LocalTime.class, __ -> "foo");
       assertThrows(IllegalStateException.class, () -> writer.configure(LocalTime.class, __ -> "bar"));
@@ -201,7 +201,7 @@ public class JSONWriterTest {
   }
 
   public record PersonInfo(@JSONProperty("birth-day") MonthDay birthday, AddressInfo address) { }
-/*
+
   @Nested
   public class Q7 {
     @Test @Tag("Q7")
@@ -251,5 +251,5 @@ public class JSONWriterTest {
     }
 
   }  // end of Q7
- */
+
 }
