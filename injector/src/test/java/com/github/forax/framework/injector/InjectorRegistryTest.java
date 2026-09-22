@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 @SuppressWarnings("unused")
 public class InjectorRegistryTest {
-  /*
   @Nested
   public class Q1 {
     @Test @Tag("Q1")
@@ -249,7 +248,7 @@ public class InjectorRegistryTest {
     public static class Empty {}
 
     @Test @Tag("Q5")
-    public void registerProviderClassWithNoSetter() {
+    public void registerProviderClassWithNoSetter() throws NoSuchMethodException {
       var registry = new InjectorRegistry();
       registry.registerProviderClass(Empty.class, Empty.class);
       var empty1 = registry.lookupInstance(Empty.class);
@@ -281,7 +280,7 @@ public class InjectorRegistryTest {
     }
 
     @Test @Tag("Q5")
-    public void registerProviderClassWithSettersInjection() {
+    public void registerProviderClassWithSettersInjection() throws NoSuchMethodException {
       var registry = new InjectorRegistry();
       registry.registerProviderClass(A.class, A.class);
       registry.registerInstance(String.class, "hello");
@@ -308,7 +307,7 @@ public class InjectorRegistryTest {
     }
 
     @Test @Tag("Q5")
-    public void registerProviderClassWithSettersWithProviderInjection() {
+    public void registerProviderClassWithSettersWithProviderInjection() throws NoSuchMethodException {
       var counter = new Object() { int count; };
       var registry = new InjectorRegistry();
       registry.registerProviderClass(B.class, B.class);
@@ -326,7 +325,7 @@ public class InjectorRegistryTest {
     }
 
     @Test @Tag("Q5")
-    public void registerProviderClassWithSettersStaticShouldBeIgnored() {
+    public void registerProviderClassWithSettersStaticShouldBeIgnored() throws NoSuchMethodException {
       var counter = new Object() { int count; };
       var registry = new InjectorRegistry();
       registry.registerInstance(String.class, "hello");
@@ -339,7 +338,7 @@ public class InjectorRegistryTest {
     public static class E implements D { }
 
     @Test @Tag("Q5")
-    public void registerProviderClassWithAnInterface() {
+    public void registerProviderClassWithAnInterface() throws NoSuchMethodException {
       var registry = new InjectorRegistry();
       registry.registerProviderClass(D.class, E.class);
       var d = registry.lookupInstance(D.class);
@@ -355,7 +354,7 @@ public class InjectorRegistryTest {
     }
 
     @Test @Tag("Q5")
-    public void registerProviderClassWithAMissingDependency() {
+    public void registerProviderClassWithAMissingDependency() throws NoSuchMethodException {
       var registry = new InjectorRegistry();
       registry.registerProviderClass(G.class, G.class);  // ok
       assertThrows(IllegalStateException.class, () -> registry.lookupInstance(G.class));
@@ -400,7 +399,7 @@ public class InjectorRegistryTest {
     }
 
     @Test @Tag("Q6")
-    public void registerProviderClassWithAnEmptyRecord() {
+    public void registerProviderClassWithAnEmptyRecord() throws NoSuchMethodException {
       record A() {
         @Inject
         public A {}
@@ -413,7 +412,7 @@ public class InjectorRegistryTest {
     }
 
     @Test @Tag("Q6")
-    public void registerProviderClassWithAMissingDependency() {
+    public void registerProviderClassWithAMissingDependency() throws NoSuchMethodException {
       record Bar(int value) {}
       record Foo(Bar bar) {
         @Inject
@@ -427,7 +426,7 @@ public class InjectorRegistryTest {
     }
 
     @Test @Tag("Q6")
-    public void registerProviderClassWithAConstructorWithTwoIntegers() {
+    public void registerProviderClassWithAConstructorWithTwoIntegers() throws NoSuchMethodException {
       record A(Integer value1, Integer value2) {
         @Inject
         public A {}
@@ -445,7 +444,7 @@ public class InjectorRegistryTest {
     }
 
     @Test @Tag("Q6")
-    public void registerProviderClassWithAnInterface() {
+    public void registerProviderClassWithAnInterface() throws NoSuchMethodException {
       interface D {}
       record E() implements D {
         public E {}
@@ -476,7 +475,7 @@ public class InjectorRegistryTest {
     }
 
     @Test @Tag("Q6")
-    public void exampleWithAll() {
+    public void exampleWithAll() throws NoSuchMethodException {
       var registry = new InjectorRegistry();
       registry.registerInstance(String.class, "hello");
       registry.registerProvider(Point.class, Point::new);
@@ -545,5 +544,5 @@ public class InjectorRegistryTest {
       assertThrows(NullPointerException.class, () -> registry.registerProviderClass(null));
     }
   }
-  */
+
 }
