@@ -36,7 +36,6 @@ public final class JSONWriter {
                     .filter(el -> el.getReadMethod() != null)
                     .<Generator>map(property -> {
                         var getter = property.getReadMethod();
-
                         var annotation = getter.getAnnotation(JSONProperty.class);
                         var name = annotation == null ? property.getName() : annotation.value();
                         var prefix = '"' + name + "\": ";
@@ -61,9 +60,9 @@ public final class JSONWriter {
             case Integer i -> "" + i;
             case Double b -> "" + b;
             case Object obj -> {
-                var func = map.get(obj.getClass());
-                if (func != null) {
-                    yield func.apply(obj);
+                var supplier = map.get(obj.getClass());
+                if (supplier != null) {
+                    yield supplier.apply(obj);
                 }
                 yield genCache.get(obj.getClass()).generate(this, obj);
             }
@@ -90,13 +89,13 @@ public final class JSONWriter {
     }
 
     private static List<PropertyDescriptor> recordProperties(Class<?> type) {
-        return Arrays.stream(type.getRecordComponents()).map(el -> {
+        return Arrays.stream(type.getRecordComponents()).map(recordComponent -> {
             try {
-                String name = el.getName();
-                Method accessor = el.getAccessor();
+                var name = recordComponent.getName();
+                var accessor = recordComponent.getAccessor();
                 return new PropertyDescriptor(name, accessor, null);
             } catch (IntrospectionException e) {
-                throw new RuntimeException(e);
+                throw new IllegalStateException(e.getMessage());
             }
         }).toList();
     }
