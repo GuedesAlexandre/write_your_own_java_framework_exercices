@@ -41,8 +41,8 @@ A [ClassValue](https://docs.oracle.com/en/java/javase/16/docs/api/java.base/java
 a cache that allows to store information for a `Class`. It can be seen as the equivalent of a
 `Map<Class,Object>` but guarantee that classes can be unloaded.
 
-The API works like a cache, the method `get(Class<?>)` try to retrieve the value from the `ClassValue`,
-if the value has not be computed, the `ClassValue` calls the method `computeValue` to get the value
+The API works like a cache, the method `get(Class<?>)` tries to retrieve the value from the `ClassValue`,
+if the value has not been computed, the `ClassValue` calls the method `computeValue` to get the value
 that will be stored in the cache for that `Class`.
 
 ```java
