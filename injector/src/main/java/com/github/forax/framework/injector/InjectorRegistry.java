@@ -4,7 +4,6 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Constructor;
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public final class InjectorRegistry {
     private final HashMap<Class<?>, Supplier<?>> instanceRegistry;
@@ -51,11 +50,10 @@ public final class InjectorRegistry {
     private static <T> Constructor<?> findConstructor(Class<? extends T> type) {
         var constructors = type.getConstructors();
         var foundedConstructors = Arrays.stream(constructors)
-                .filter(constructor -> {
-                    return constructor.isAnnotationPresent(Inject.class);}).toList();
+                .filter(constructor -> constructor.isAnnotationPresent(Inject.class)).toList();
         return switch (foundedConstructors.size()) {
             case 0 -> Utils.defaultConstructor(type);
-            case 1->  foundedConstructors.getFirst();
+            case 1 -> foundedConstructors.getFirst();
             default -> throw new IllegalStateException("Either no or multiple constructor candidates found");
         };
     }
@@ -69,7 +67,7 @@ public final class InjectorRegistry {
         registerProvider(type, () -> {
             var args = Arrays.stream(constructor.getParameterTypes()).map(this::lookupInstance).toArray();
             var instance = Utils.newInstance(constructor, args);
-            for (var property: properties) {
+            for (var property : properties) {
                 var param = lookupInstance(property.getWriteMethod().getParameterTypes()[0]);
                 Utils.invokeMethod(instance, property.getWriteMethod(), param);
             }
@@ -77,10 +75,10 @@ public final class InjectorRegistry {
         });
     }
 
-   public <T> void registerProviderClass(Class<T> type){
+    public <T> void registerProviderClass(Class<T> type) {
         Objects.requireNonNull(type);
         registerProviderClass(type, type);
-   }
+    }
 
 
 }

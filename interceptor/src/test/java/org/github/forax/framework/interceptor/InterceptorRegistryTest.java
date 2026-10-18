@@ -21,191 +21,213 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class InterceptorRegistryTest {
-  /*
-  @Nested
-  public class Q1 {
 
-    @Retention(RUNTIME)
-    @Target(METHOD)
-    @interface CheckNotNull { }
+    @Nested
+    public class Q1 {
 
-    @Test @Tag("Q1")
-    public void createProxy() {
-      interface Hello {
-        @CheckNotNull String say(String message, String name);
-      }
-
-      class HelloImpl implements Hello {
-        @Override
-        public String say(String message, String name) {
-          return message + " " + name;
-        }
-      }
-      var hello = new HelloImpl();
-
-      var registry = new InterceptorRegistry();
-      registry.addAroundAdvice(CheckNotNull.class, new AroundAdvice() {
-        @Override
-        public void before(Object delegate, Method method, Object[] args) {
-          Arrays.stream(args).forEach(Objects::requireNonNull);
+        @Retention(RUNTIME)
+        @Target(METHOD)
+        @interface CheckNotNull {
         }
 
-        @Override
-        public void after(Object delegate, Method method, Object[] args, Object result) {}
-      });
-      var proxy = registry.createProxy(Hello.class, hello);
-      assertAll(
-          () -> assertEquals("hello around advice", proxy.say("hello", "around advice")),
-          () -> assertThrows(NullPointerException.class, () -> proxy.say("hello", null))
-      );
-    }
+        @Test
+        @Tag("Q1")
+        public void createProxy() {
+            interface Hello {
+                @CheckNotNull
+                String say(String message, String name);
+            }
 
-    @Retention(RUNTIME)
-    @Target(METHOD)
-    @interface Tagged { }
+            class HelloImpl implements Hello {
+                @Override
+                public String say(String message, String name) {
+                    return message + " " + name;
+                }
+            }
+            var hello = new HelloImpl();
 
-    @Test @Tag("Q1")
-    public void checkArguments() throws NoSuchMethodException {
-      interface Adder {
-        @Tagged int add(int a, int b);
-      }
+            var registry = new InterceptorRegistry();
+            registry.addAroundAdvice(CheckNotNull.class, new AroundAdvice() {
+                @Override
+                public void before(Object delegate, Method method, Object[] args) {
+                    Arrays.stream(args).forEach(Objects::requireNonNull);
+                }
 
-      Adder sum = Integer::sum;
-      Method add = Adder.class.getMethod("add", int.class, int.class);
-
-      var registry = new InterceptorRegistry();
-      registry.addAroundAdvice(Tagged.class, new AroundAdvice() {
-        @Override
-        public void before(Object delegate, Method method, Object[] args) {
-          assertAll(
-              () -> assertEquals(sum, delegate),
-              () -> assertEquals(add, method),
-              () -> assertEquals(List.of(2, 3), List.of(args))
-          );
+                @Override
+                public void after(Object delegate, Method method, Object[] args, Object result) {
+                }
+            });
+            var proxy = registry.createProxy(Hello.class, hello);
+            assertAll(
+                    () -> assertEquals("hello around advice", proxy.say("hello", "around advice")),
+                    () -> assertThrows(NullPointerException.class, () -> proxy.say("hello", null))
+            );
         }
 
-        @Override
-        public void after(Object delegate, Method method, Object[] args, Object result) {
-          assertAll(
-              () -> assertEquals(sum, delegate),
-              () -> assertEquals(add, method),
-              () -> assertEquals(List.of(2, 3), List.of(args)),
-              () -> assertEquals(5, result)
-          );
+        @Retention(RUNTIME)
+        @Target(METHOD)
+        @interface Tagged {
         }
-      });
-      var adder = registry.createProxy(Adder.class, sum);
-      assertEquals(5, adder.add(2, 3));
-    }
 
-    @Test  @Tag("Q1")
-    public void addAroundAdvicePreconditions() {
-      var advice = new AroundAdvice() {
-        @Override
-        public void before(Object delegate, Method method, Object[] args) {}
-        @Override
-        public void after(Object delegate, Method method, Object[] args, Object result) {}
-      };
-      var registry = new InterceptorRegistry();
-      assertAll(
-          () -> assertThrows(NullPointerException.class, () -> registry.addAroundAdvice(null, advice)),
-          () -> assertThrows(NullPointerException.class, () -> registry.addAroundAdvice(CheckNotNull.class, null))
-      );
-    }
+        @Test
+        @Tag("Q1")
+        public void checkArguments() throws NoSuchMethodException {
+            interface Adder {
+                @Tagged
+                int add(int a, int b);
+            }
 
-    @Test @Tag("Q1")
-    public void createProxyPreconditions() {
-      var registry = new InterceptorRegistry();
-      assertAll(
-          () -> assertThrows(NullPointerException.class, () -> registry.createProxy(null, 3)),
-          () -> assertThrows(NullPointerException.class, () -> registry.createProxy(Runnable.class, null)),
-          () -> assertThrows(IllegalArgumentException.class, () -> registry.createProxy(String.class, "foo"))
-      );
-    }
-  } // end Q1
+            Adder sum = Integer::sum;
+            Method add = Adder.class.getMethod("add", int.class, int.class);
 
+            var registry = new InterceptorRegistry();
+            registry.addAroundAdvice(Tagged.class, new AroundAdvice() {
+                @Override
+                public void before(Object delegate, Method method, Object[] args) {
+                    assertAll(
+                            () -> assertEquals(sum, delegate),
+                            () -> assertEquals(add, method),
+                            () -> assertEquals(List.of(2, 3), List.of(args))
+                    );
+                }
 
-  @Nested
-  public class Q2 {
-    @Retention(RUNTIME)
-    @Target(METHOD)
-    @interface Tagged1 { }
-
-    @Retention(RUNTIME)
-    @Target(METHOD)
-    @interface Tagged2 { }
-
-//    @Test @Tag("Q2")
-//    public void findAdvices() throws NoSuchMethodException {
-//      class EmptyAroundAdvice implements AroundAdvice {
-//        @Override
-//        public void before(Object instance, Method method, Object[] args) {}
-//        @Override
-//        public void after(Object instance, Method method, Object[] args, Object result) {}
-//      }
-//
-//      var registry = new InterceptorRegistry();
-//      var advice1 = new EmptyAroundAdvice();
-//      var advice2 = new EmptyAroundAdvice();
-//      var advice3 = new EmptyAroundAdvice();
-//      registry.addAroundAdvice(Tagged1.class, advice1);
-//      registry.addAroundAdvice(Tagged1.class, advice2);
-//      registry.addAroundAdvice(Tagged2.class, advice3);
-//
-//      interface Foo {
-//        void method0();
-//
-//        @Tagged1
-//        void method1();
-//
-//        @Tagged2
-//        void method2();
-//
-//        @Tagged1 @Tagged2
-//        void method3();
-//      }
-//
-//      var method0 = Foo.class.getMethod("method0");
-//      var method1 = Foo.class.getMethod("method1");
-//      var method2 = Foo.class.getMethod("method2");
-//      var method3 = Foo.class.getMethod("method3");
-//      assertAll(
-//          () -> assertEquals(List.of(), registry.findAdvices(method0)),
-//          () -> assertEquals(List.of(advice1, advice2), registry.findAdvices(method1)),
-//          () -> assertEquals(List.of(advice3), registry.findAdvices(method2)),
-//          () -> assertEquals(List.of(advice1, advice2, advice3), registry.findAdvices(method3))
-//      );
-//    }
-
-    @Test @Tag("Q2")
-    public void withTwoAdvices() {
-      record ModifyParameterAroundAdvice(int index, Object value) implements AroundAdvice {
-        @Override
-        public void before(Object instance, Method method, Object[] args) {
-          args[index] = value;
+                @Override
+                public void after(Object delegate, Method method, Object[] args, Object result) {
+                    assertAll(
+                            () -> assertEquals(sum, delegate),
+                            () -> assertEquals(add, method),
+                            () -> assertEquals(List.of(2, 3), List.of(args)),
+                            () -> assertEquals(5, result)
+                    );
+                }
+            });
+            var adder = registry.createProxy(Adder.class, sum);
+            assertEquals(5, adder.add(2, 3));
         }
-        @Override
-        public void after(Object instance, Method method, Object[] args, Object result) {}
-      }
 
-      interface Hello {
-        @Tagged1
-        String say(String message, String name);
-      }
-      var hello = new Hello() {
-        @Override
-        public String say(String message, String name) {
-          return message + " " + name;
+        @Test
+        @Tag("Q1")
+        public void addAroundAdvicePreconditions() {
+            var advice = new AroundAdvice() {
+                @Override
+                public void before(Object delegate, Method method, Object[] args) {
+                }
+
+                @Override
+                public void after(Object delegate, Method method, Object[] args, Object result) {
+                }
+            };
+            var registry = new InterceptorRegistry();
+            assertAll(
+                    () -> assertThrows(NullPointerException.class, () -> registry.addAroundAdvice(null, advice)),
+                    () -> assertThrows(NullPointerException.class, () -> registry.addAroundAdvice(CheckNotNull.class, null))
+            );
         }
-      };
 
-      var registry = new InterceptorRegistry();
-      registry.addAroundAdvice(Tagged1.class, new ModifyParameterAroundAdvice(0, "foo"));
-      registry.addAroundAdvice(Tagged1.class, new ModifyParameterAroundAdvice(1, "bar"));
-      var proxy = registry.createProxy(Hello.class, hello);
-      assertEquals("foo bar", proxy.say("hello", "world"));
-    }
-  }  // end of Q2
+        @Test
+        @Tag("Q1")
+        public void createProxyPreconditions() {
+            var registry = new InterceptorRegistry();
+            assertAll(
+                    () -> assertThrows(NullPointerException.class, () -> registry.createProxy(null, 3)),
+                    () -> assertThrows(NullPointerException.class, () -> registry.createProxy(Runnable.class, null)),
+                    () -> assertThrows(IllegalArgumentException.class, () -> registry.createProxy(String.class, "foo"))
+            );
+        }
+    } // end Q1
+
+
+    @Nested
+    public class Q2 {
+        @Retention(RUNTIME)
+        @Target(METHOD)
+        @interface Tagged1 {
+        }
+
+        @Retention(RUNTIME)
+        @Target(METHOD)
+        @interface Tagged2 {
+        }
+
+//        @Test
+//        @Tag("Q2")
+//        public void findAdvices() throws NoSuchMethodException {
+//            class EmptyAroundAdvice implements AroundAdvice {
+//                @Override
+//                public void before(Object instance, Method method, Object[] args) {
+//                }
+//
+//                @Override
+//                public void after(Object instance, Method method, Object[] args, Object result) {
+//                }
+//            }
+//
+//            var registry = new InterceptorRegistry();
+//            var advice1 = new EmptyAroundAdvice();
+//            var advice2 = new EmptyAroundAdvice();
+//            var advice3 = new EmptyAroundAdvice();
+//            registry.addAroundAdvice(Tagged1.class, advice1);
+//            registry.addAroundAdvice(Tagged1.class, advice2);
+//            registry.addAroundAdvice(Tagged2.class, advice3);
+//
+//            interface Foo {
+//                void method0();
+//
+//                @Tagged1
+//                void method1();
+//
+//                @Tagged2
+//                void method2();
+//
+//                @Tagged1
+//                @Tagged2
+//                void method3();
+//            }
+//
+//            var method0 = Foo.class.getMethod("method0");
+//            var method1 = Foo.class.getMethod("method1");
+//            var method2 = Foo.class.getMethod("method2");
+//            var method3 = Foo.class.getMethod("method3");
+//            assertAll(
+//                    () -> assertEquals(List.of(), registry.findAdvices(method0)),
+//                    () -> assertEquals(List.of(advice1, advice2), registry.findAdvices(method1)),
+//                    () -> assertEquals(List.of(advice3), registry.findAdvices(method2)),
+//                    () -> assertEquals(List.of(advice1, advice2, advice3), registry.findAdvices(method3))
+//            );
+//        }
+
+        @Test
+        @Tag("Q2")
+        public void withTwoAdvices() {
+            record ModifyParameterAroundAdvice(int index, Object value) implements AroundAdvice {
+                @Override
+                public void before(Object instance, Method method, Object[] args) {
+                    args[index] = value;
+                }
+
+                @Override
+                public void after(Object instance, Method method, Object[] args, Object result) {
+                }
+            }
+
+            interface Hello {
+                @Tagged1
+                String say(String message, String name);
+            }
+            var hello = new Hello() {
+                @Override
+                public String say(String message, String name) {
+                    return message + " " + name;
+                }
+            };
+
+            var registry = new InterceptorRegistry();
+            registry.addAroundAdvice(Tagged1.class, new ModifyParameterAroundAdvice(0, "foo"));
+            registry.addAroundAdvice(Tagged1.class, new ModifyParameterAroundAdvice(1, "bar"));
+            var proxy = registry.createProxy(Hello.class, hello);
+            assertEquals("foo bar", proxy.say("hello", "world"));
+        }
+    }  // end of Q2
 
 
   @Nested
@@ -604,6 +626,4 @@ public class InterceptorRegistryTest {
       assertEquals("-hello-", foo.hello("hello"));
     }
   }  // end Q7
-
-  */
 }

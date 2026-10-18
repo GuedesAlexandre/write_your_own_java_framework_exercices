@@ -2,7 +2,6 @@ package com.github.forax.framework.mapper;
 
 import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -16,13 +15,7 @@ public final class JSONWriter {
         super();
     }
 
-    static class PropertyDescriptorCache extends ClassValue<List<PropertyDescriptor>> {
-        @Override
-        protected List<PropertyDescriptor> computeValue(Class<?> type) {
-            return type.isRecord() ? recordProperties(type) : beanProperties(type);
-        }
-    }
-
+    @FunctionalInterface
     interface Generator {
         String generate(JSONWriter writer, Object bean);
     }
